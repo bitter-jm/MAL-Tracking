@@ -18,14 +18,18 @@ class AnimeTX:
     animesMAL = []
     lastEpisodes = []
 
-    def getCredentials(self):
-        pass
-
-
-    def __init__(self):
-        self.getCredentials()
+    def __init__(self, b):
+        if b:
+            self.getCredentials()
+        else:
+            self.updateCredentials()
 
     def help(self):
+        print('***COMANDOS:***')
+        print(' - changeuser/cu -> Changes the user of MyAnimeList.net')
+        print(' - increase/inc <num> -> Increases by one your current cap of that anime')
+
+    def getCredentials(self):
         pass
 
     def updateCredentials(self):
@@ -55,7 +59,7 @@ class AnimeTX:
 
 ### -------------- EXECUTION -------------- ###
 
-ScriptTX = AnimeTX()
+ScriptTX = AnimeTX(True)
 
 while(1):
     time.sleep(5)
