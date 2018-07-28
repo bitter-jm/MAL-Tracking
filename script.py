@@ -1,8 +1,6 @@
+
 # Por hacer:
 # - Hay veces que el POST devuelve al url correct (pagina de inicio) pero retorna s.c. 429 -> Mirar si realmente está logeado
-# - 
-
-
 
 ### -------------- LIBRARIES -------------- ###
 
@@ -27,7 +25,7 @@ class AnimeTX:
     dateNextCap = []
     status = None
     csrf_token = None
-    delay = 0.5 #Delay between requests
+    delay = 0.3 #Delay between requests
 
     def __init__(self, b):
         # -1 -> Wrong credentials
@@ -55,11 +53,12 @@ class AnimeTX:
         self.getLastEpFLV()
 
     @staticmethod
-    def help(self):
-        print('***COMANDOS:***')
+    def help():
+        print('\n' + Style.BRIGHT +'**COMMANDS**' + Style.RESET_ALL)
         print(' - help/h -> Prints all commands')
         print(' - changeuser/cu -> Changes the user of MyAnimeList.net')
         print(' - increase/inc <num> -> Increases by one your current cap of that anime')
+        
 
     def getCredentials(self):
         if (not os.path.exists('credentials')):
@@ -213,41 +212,39 @@ class AnimeTX:
                         url = tempUrl
                 url = 'https://animeflv.net' + url
                 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+                page = self.session.get(url)
+                content = page.text
+                try:
+                    episodes = content.split('var episodes = [[')
+                    self.lastEpisodes.append(episodes[1].split(',')[0])
+                    animeInfo = content.split('var anime_info = [')[1].split(']')[0].split(',')
+                    animeDate = 'Finished'
+                    if len(animeInfo) == 4:
+                        animeDate = animeInfo[3].replace('"','')
+                    self.dateNextCap.append(animeDate)
+                except:
+                    self.lastEpisodes.append('Error')
+                    self.dateNextCap.append('Error')
 
     def listAnimes(self):
-        pass
-
+        print('\n' + Style.BRIGHT +'**ANIME LIST**' + Style.RESET_ALL)
+        print(Style.BRIGHT + 'NUM: ' + Fore.GREEN + 'TITLE' + Fore.WHITE + ' --> ' + Fore.CYAN + 'NEXT EPISODE ' + Fore.WHITE + '--> ' + Fore.MAGENTA + 'WATCHED:LAST' + Fore.RESET + Style.RESET_ALL)
+        for i in range(0,len(self.animesMAL)):
+            newEps = ''
+            if int(self.animesMAL[i]['num_watched_episodes']) < int(self.lastEpisodes[i]) and self.dateNextCap[i] != 'Finished':
+                newEps = 'New Episodes!'
+            print("  " + str(i) + ": " + Fore.GREEN + str(self.animesMAL[i]['anime_title']) + Fore.WHITE + "  -->  " + Fore.CYAN + str(self.dateNextCap[i]) + Fore.WHITE 
+            + "  -->  " + Fore.MAGENTA + str(self.animesMAL[i]['num_watched_episodes']) + ":" + str(self.lastEpisodes[i]) + Fore.RED + "  " + newEps + Fore.WHITE)
+        print()
 ### -------------- EXECUTION -------------- ###
 
 if __name__ == '__main__':
 
     errlog = open("debuglog.txt", 'w+', encoding="utf-8")
+    init(convert=True) #Initialize colorama
     ScriptTX = AnimeTX(True)
+    ScriptTX.help()
+    ScriptTX.listAnimes()
 
     #time.sleep(0.5)
     #ScriptTX.updateAnimeMAL(1, 25)
