@@ -79,7 +79,7 @@ class AnimeTX:
         errlog.write(' - token :' + payload['csrf_token'] + '\n')
         del tree
         del loginPage
-        time.sleep(0.4)
+        time.sleep(0.5)
 
         errlog.write('HTTP POST -> MAL loggin...\n')
         page = self.session.post('https://myanimelist.net/login.php', data = payload, headers = dict(referer='https://myanimelist.net/login.php'))
@@ -97,7 +97,7 @@ class AnimeTX:
 
         print('Logged in.')
         errlog.write('Logged in.\n\n')
-        time.sleep(0.4)
+        time.sleep(0.5)
         return 0
 
     def getAnimesMAL(self):
