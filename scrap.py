@@ -2,6 +2,7 @@
 ### -------------- LIBRARIES -------------- ###
 
 import json
+import difflib
 import requests
 from lxml import html
 import time
@@ -50,23 +51,24 @@ class AnimeTX:
     @staticmethod
     def help(self):
         print('***COMANDOS:***')
+        print(' - help/h -> Prints all commands')
         print(' - changeuser/cu -> Changes the user of MyAnimeList.net')
         print(' - increase/inc <num> -> Increases by one your current cap of that anime')
 
     def getCredentials(self):
         if (not os.path.exists('credentials')):
-            fp = open('credentials', 'w+')
+            fp = open('credentials', 'w+', encoding="utf-8")
             self.updateCredentials()
             fp.close()
         else:
-            with open('credentials', 'r') as fp:
+            with open('credentials', 'r', encoding="utf-8") as fp:
                 self.user = fp.readline().replace('\n','')
                 self.password = fp.readline().replace('\n','')
 
     def updateCredentials(self):
         self.user = input("Enter 'MyAnimeList.net' username: ")
         self.password = input("Enter password: ")
-        with open('credentials', 'w+') as fp:
+        with open('credentials', 'w+', encoding="utf-8") as fp:
                 fp.write(self.user + '\n')
                 fp.write(self.password + '\n')
         
@@ -172,6 +174,10 @@ class AnimeTX:
 
 
 
+
+
+
+
     def getLastEpFLV(self):
         for anime in self.animesMAL:
 
@@ -195,10 +201,41 @@ class AnimeTX:
                     else:
                         if aux != '+':
                             formatedName = formatedName + '+'
-                            aux = '+'
-                FLVurl = 'https://animeflv.net/browse?q={}'.format(formatedName)
+                            aux = '+'      
+                
+                status = ''
+                page = None
+                while status != '200':
+                    errlog.write("HTTP GET -> {} FLV list\n".format(rawName))
+                    page = self.session.get('https://animeflv.net/browse?q={}'.format(formatedName))
+                    status = str(page.status_code)
+                    errlog.write(" - status code: " + status + '\n\n')
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                ratio = 0
+                url = ''
+                for i in range(0,2):#for each anime entry:
+                    #scrap name and link
+                    if ratio < difflib.SequenceMatcher(None, rawName, 'scrapedName').ratio():
+                        ratio = difflib.SequenceMatcher(None, rawName, 'scrapedName').ratio()
+                        url = 'scrapedURL'
 
 
 
@@ -227,16 +264,17 @@ class AnimeTX:
     def listAnimes(self):
         pass
 
-
 ### -------------- EXECUTION -------------- ###
 
-errlog = open("debuglog.txt", 'w+')
-ScriptTX = AnimeTX(True)
+if __name__ == '__main__':
 
-#time.sleep(0.5)
-#ScriptTX.updateAnimeMAL(1, 25)
+    errlog = open("debuglog.txt", 'w+', encoding="utf-8")
+    ScriptTX = AnimeTX(True)
 
-#while(1):
-#    pass
+    #time.sleep(0.5)
+    #ScriptTX.updateAnimeMAL(1, 25)
 
-errlog.close()
+    #while(1):
+    #    pass
+
+    errlog.close()
