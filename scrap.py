@@ -17,6 +17,7 @@ class AnimeTX:
     session = requests.Session()
     animesMAL = []
     lastEpisodes = []
+    dateNextCap = []
     status = None
     csrf_token = None
     delay = 0.3 #Delay between requests
@@ -44,6 +45,7 @@ class AnimeTX:
             exit(1)  
 
         self.getAnimesMAL()
+        self.getLastEpFLV()
 
     @staticmethod
     def help(self):
@@ -130,20 +132,9 @@ class AnimeTX:
                 items[i] = '{' + items[i] + '}'
         for item in items:
             self.animesMAL.append(json.loads(item))
-
-
-
-
-
-
-
-
-
-
-
+        
     def updateAnimeMAL(self, num, cap):
         payload = '{\"num_watched_episodes\":' + str(cap) + ',\"anime_id\":' + str(self.animesMAL[num]['anime_id']) + ',\"status\":1,\"csrf_token\":\"' + self.csrf_token + '\"}'
-        print(payload)
 
         headersObj = {
         'referer': 'https://myanimelist.net/animelist/{}?status=1'.format(self.user), 
@@ -156,6 +147,12 @@ class AnimeTX:
         errlog.write('HTTP POST -> Update anime cap...\n')
         page = self.session.post('https://myanimelist.net/ownlist/anime/edit.json', data = payload, headers = headersObj)
         errlog.write(" - status code: " + str(page.status_code) + '\n\n')
+
+        if '4' in str(page.status_code):
+            print('An error occurred while trying to update MAL list...')
+        else:
+            print('Anime updated.')
+            self.animesMAL[num]['num_watched_episodes'] = cap
 
 
 
@@ -176,7 +173,56 @@ class AnimeTX:
 
 
     def getLastEpFLV(self):
-        pass
+        for anime in self.animesMAL:
+
+            if str(anime['anime_airing_status']) == '2': #FINISHED ANIME
+                self.lastEpisodes.append(anime['anime_num_episodes'])
+                self.dateNextCap.append('Finished')
+            else: #AIRING ANIME
+
+                rawName = anime['anime_title']
+                formatedName = ''
+                charFilter = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ '
+                aux = ''
+                for c in rawName:
+                    if c in charFilter:
+                        if c != ' ':
+                            formatedName = formatedName + c
+                            aux = c
+                        elif aux != '+':
+                            formatedName = formatedName + '+'
+                            aux = '+'
+                    else:
+                        if aux != '+':
+                            formatedName = formatedName + '+'
+                            aux = '+'
+                FLVurl = 'https://animeflv.net/browse?q={}'.format(formatedName)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     def listAnimes(self):
         pass
@@ -187,8 +233,8 @@ class AnimeTX:
 errlog = open("debuglog.txt", 'w+')
 ScriptTX = AnimeTX(True)
 
-time.sleep(1)
-ScriptTX.updateAnimeMAL(1, 25)
+#time.sleep(0.5)
+#ScriptTX.updateAnimeMAL(1, 25)
 
 #while(1):
 #    pass
