@@ -141,20 +141,20 @@ class AnimeTX:
 
 
 
-
-
-
-
     def updateAnimeMAL(self, num, cap):
-        payload = {
-            "num_watched_episodes": cap,
-            "anime_id": self.animesMAL[num]['anime_id'],
-            "status": 1,
-            "csrf_token": self.csrf_token
+        payload = '{\"num_watched_episodes\":' + str(cap) + ',\"anime_id\":' + str(self.animesMAL[num]['anime_id']) + ',\"status\":1,\"csrf_token\":\"' + self.csrf_token + '\"}'
+        print(payload)
+
+        headersObj = {
+        'referer': 'https://myanimelist.net/animelist/{}?status=1'.format(self.user), 
+        'user-agent': 'Mozilla/5.0', 
+        'origin': 'https://myanimelist.net',
+        'x-requested-with': 'XMLHttpRequest',
+        'accept': '*/*'
         }
 
         errlog.write('HTTP POST -> Update anime cap...\n')
-        page = self.session.post('https://myanimelist.net/ownlist/anime/edit.json', data = payload, headers = {'referer': 'https://myanimelist.net/animelist/{}?status=1'.format(self.user), 'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36', 'origin': 'https://myanimelist.net'})
+        page = self.session.post('https://myanimelist.net/ownlist/anime/edit.json', data = payload, headers = headersObj)
         errlog.write(" - status code: " + str(page.status_code) + '\n\n')
 
 
@@ -187,8 +187,8 @@ class AnimeTX:
 errlog = open("debuglog.txt", 'w+')
 ScriptTX = AnimeTX(True)
 
-#time.sleep(1)
-#ScriptTX.updateAnimeMAL(0, 20)
+time.sleep(1)
+ScriptTX.updateAnimeMAL(1, 25)
 
 #while(1):
 #    pass
