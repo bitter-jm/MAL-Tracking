@@ -1,3 +1,8 @@
+# Por hacer:
+# - Hay veces que el POST devuelve al url correct (pagina de inicio) pero retorna s.c. 429 -> Mirar si realmente está logeado
+# - 
+
+
 
 ### -------------- LIBRARIES -------------- ###
 
@@ -5,6 +10,7 @@ import json
 import difflib
 import requests
 from lxml import html
+from bs4 import BeautifulSoup
 import time
 import os
 import sys
@@ -21,7 +27,7 @@ class AnimeTX:
     dateNextCap = []
     status = None
     csrf_token = None
-    delay = 0.3 #Delay between requests
+    delay = 0.5 #Delay between requests
 
     def __init__(self, b):
         # -1 -> Wrong credentials
@@ -85,8 +91,9 @@ class AnimeTX:
         errlog.write('HTTP GET -> MAL loggin page...\n')
         loginPage = self.session.get('https://myanimelist.net/login.php')
         errlog.write(" - status code: " + str(loginPage.status_code) + '\n')
-        if '429' in str(loginPage.status_code):
+        if '4' in str(loginPage.status_code):
             errlog.write('Failed to open page. The server is refusing the connection. RETRYING...\n\n')
+            time.sleep(self.delay)
             return -3
         
         errlog.write('Parsing CSRF token...\n')
@@ -121,9 +128,13 @@ class AnimeTX:
         return 0
 
     def getAnimesMAL(self):
-        errlog.write('HTTP GET -> MAL watching list...\n')
-        page = self.session.get('https://myanimelist.net/animelist/{}?status=1'.format(self.user))
-        errlog.write(" - status code: " + str(page.status_code) + '\n\n')
+        page = None
+        status = ''
+        while status != '200':
+            errlog.write('HTTP GET -> MAL watching list...\n')
+            page = self.session.get('https://myanimelist.net/animelist/{}?status=1'.format(self.user))
+            status = str(page.status_code)
+            errlog.write(" - status code: " + status + '\n\n')
 
         items = page.text.split('data-items="[')[1].split(']">')[0].replace('&quot;', '"').split('},{')
         if len(items) >= 2:
@@ -156,36 +167,14 @@ class AnimeTX:
             print('Anime updated.')
             self.animesMAL[num]['num_watched_episodes'] = cap
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     def getLastEpFLV(self):
         for anime in self.animesMAL:
 
             if str(anime['anime_airing_status']) == '2': #FINISHED ANIME
                 self.lastEpisodes.append(anime['anime_num_episodes'])
                 self.dateNextCap.append('Finished')
-            else: #AIRING ANIME
 
+            else: #AIRING ANIME
                 rawName = anime['anime_title']
                 formatedName = ''
                 charFilter = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ '
@@ -211,31 +200,20 @@ class AnimeTX:
                     status = str(page.status_code)
                     errlog.write(" - status code: " + status + '\n\n')
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+                soup = BeautifulSoup(page.text, 'lxml')
+                entries = soup.find_all('article', {'class': 'Anime'})
 
                 ratio = 0
                 url = ''
-                for i in range(0,2):#for each anime entry:
-                    #scrap name and link
-                    if ratio < difflib.SequenceMatcher(None, rawName, 'scrapedName').ratio():
-                        ratio = difflib.SequenceMatcher(None, rawName, 'scrapedName').ratio()
-                        url = 'scrapedURL'
+                for entry in entries:
+                    tempUrl = entry.a['href']
+                    tempName = entry.a.h3.text
+                    if ratio < difflib.SequenceMatcher(None, rawName, tempName).ratio():
+                        ratio = difflib.SequenceMatcher(None, rawName, tempName).ratio()
+                        url = tempUrl
+                url = 'https://animeflv.net' + url
+                
+
 
 
 
