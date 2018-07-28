@@ -18,17 +18,26 @@ class AnimeTX:
     animesMAL = []
     lastEpisodes = []
     status = None
+    csrf_token = None
+    delay = 0.3 #Delay between requests
 
     def __init__(self, b):
+        # -1 -> Wrong credentials
+        # -2 -> Error code 40X
+        # -3 -> Status code 429: 'Too Many requests'
         if b:
             self.getCredentials()
         else:
             self.updateCredentials()
 
         self.status = self.loginMAL()
-        while (self.status == -1):
+        while (self.status == -1 or self.status == -3):
             self.updateCredentials()
-            self.session = requests.Session()
+            if (self.status == -1):
+                self.session = requests.Session()
+            else: 
+                time.sleep(self.delay)
+                self.delay = self.delay+0.2
             self.status = self.loginMAL()
         if self.status == -2:
             time.sleep(5)
@@ -72,14 +81,18 @@ class AnimeTX:
         errlog.write('HTTP GET -> MAL loggin page...\n')
         loginPage = self.session.get('https://myanimelist.net/login.php')
         errlog.write(" - status code: " + str(loginPage.status_code) + '\n')
+        if '429' in str(loginPage.status_code):
+            errlog.write('Failed to open page. The server is refusing the connection. RETRYING...\n\n')
+            return -3
         
         errlog.write('Parsing CSRF token...\n')
         tree = html.fromstring(loginPage.text)
-        payload['csrf_token'] = list(set(tree.xpath("//meta[@name='csrf_token']/@content")))[0]
+        self.csrf_token = list(set(tree.xpath("//meta[@name='csrf_token']/@content")))[0]
+        payload['csrf_token'] = self.csrf_token
         errlog.write(' - token :' + payload['csrf_token'] + '\n')
         del tree
         del loginPage
-        time.sleep(0.5)
+        time.sleep(self.delay)
 
         errlog.write('HTTP POST -> MAL loggin...\n')
         page = self.session.post('https://myanimelist.net/login.php', data = payload, headers = dict(referer='https://myanimelist.net/login.php'))
@@ -90,6 +103,9 @@ class AnimeTX:
                 print('Failed to login. The server is refusing the connection.\nTry it again in 1 min.')
                 errlog.write('Failed to login. The server is refusing the connection.\n\n')
                 return -2
+            elif '429' in str(page.status_code):
+                errlog.write('Failed to login. The server is refusing the connection. RETRYING...\n\n')
+                return -3
             else:
                 print('Failed to login. Your credentials may be wrong.')
                 errlog.write('Failed to login. Your credentials may be wrong.\n\n')
@@ -97,13 +113,13 @@ class AnimeTX:
 
         print('Logged in.')
         errlog.write('Logged in.\n\n')
-        time.sleep(0.5)
+        time.sleep(self.delay)
         return 0
 
     def getAnimesMAL(self):
         errlog.write('HTTP GET -> MAL watching list...\n')
         page = self.session.get('https://myanimelist.net/animelist/{}?status=1'.format(self.user))
-        errlog.write(" - status code: " + str(page.status_code) + '\n')
+        errlog.write(" - status code: " + str(page.status_code) + '\n\n')
 
         items = page.text.split('data-items="[')[1].split(']">')[0].replace('&quot;', '"').split('},{')
         if len(items) >= 2:
@@ -129,8 +145,17 @@ class AnimeTX:
 
 
 
+    def updateAnimeMAL(self, num, cap):
+        payload = {
+            "num_watched_episodes": cap,
+            "anime_id": self.animesMAL[num]['anime_id'],
+            "status": 1,
+            "csrf_token": self.csrf_token
+        }
 
-
+        errlog.write('HTTP POST -> Update anime cap...\n')
+        page = self.session.post('https://myanimelist.net/ownlist/anime/edit.json', data = payload, headers = {'referer': 'https://myanimelist.net/animelist/{}?status=1'.format(self.user), 'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36', 'origin': 'https://myanimelist.net'})
+        errlog.write(" - status code: " + str(page.status_code) + '\n\n')
 
 
 
@@ -153,9 +178,6 @@ class AnimeTX:
     def getLastEpFLV(self):
         pass
 
-    def updateAnimeMAL(self):
-        pass
-
     def listAnimes(self):
         pass
 
@@ -164,6 +186,9 @@ class AnimeTX:
 
 errlog = open("debuglog.txt", 'w+')
 ScriptTX = AnimeTX(True)
+
+#time.sleep(1)
+#ScriptTX.updateAnimeMAL(0, 20)
 
 #while(1):
 #    pass
