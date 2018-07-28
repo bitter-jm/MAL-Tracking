@@ -57,7 +57,10 @@ class AnimeTX:
         print('\n' + Style.BRIGHT +'**COMMANDS**' + Style.RESET_ALL)
         print(' - help/h -> Prints all commands')
         print(' - changeuser/cu -> Changes the user of MyAnimeList.net')
-        print(' - increase/inc <num> -> Increases by one your current cap of that anime')
+        print(' - list/l -> Lists all watching animes')
+        print(' - increase/i <num> -> Increases by one your current cap of anime<num>')
+        print(' - update/u <num> <ep> -> Updates the current episode of anime<num> to <ep>')
+        print(' - quit/q -> Ends the process')
         
 
     def getCredentials(self):
@@ -145,8 +148,12 @@ class AnimeTX:
         for item in items:
             self.animesMAL.append(json.loads(item))
         
-    def updateAnimeMAL(self, num, cap):
-        payload = '{\"num_watched_episodes\":' + str(cap) + ',\"anime_id\":' + str(self.animesMAL[num]['anime_id']) + ',\"status\":1,\"csrf_token\":\"' + self.csrf_token + '\"}'
+    def updateAnimeMAL(self, num, cap = 0, inc = False):
+        payload = ''
+        if (inc == False):
+            payload = '{\"num_watched_episodes\":' + str(cap) + ',\"anime_id\":' + str(self.animesMAL[num]['anime_id']) + ',\"status\":1,\"csrf_token\":\"' + self.csrf_token + '\"}'
+        else:
+            payload = '{\"num_watched_episodes\":' + str(int(self.animesMAL['num_watched_episodes'])+1) + ',\"anime_id\":' + str(self.animesMAL[num]['anime_id']) + ',\"status\":1,\"csrf_token\":\"' + self.csrf_token + '\"}'
 
         headersObj = {
         'referer': 'https://myanimelist.net/animelist/{}?status=1'.format(self.user), 
@@ -236,6 +243,7 @@ class AnimeTX:
             print("  " + str(i) + ": " + Fore.GREEN + str(self.animesMAL[i]['anime_title']) + Fore.WHITE + "  -->  " + Fore.CYAN + str(self.dateNextCap[i]) + Fore.WHITE 
             + "  -->  " + Fore.MAGENTA + str(self.animesMAL[i]['num_watched_episodes']) + ":" + str(self.lastEpisodes[i]) + Fore.RED + "  " + newEps + Fore.WHITE)
         print()
+
 ### -------------- EXECUTION -------------- ###
 
 if __name__ == '__main__':
@@ -243,13 +251,28 @@ if __name__ == '__main__':
     errlog = open("debuglog.txt", 'w+', encoding="utf-8")
     init(convert=True) #Initialize colorama
     ScriptTX = AnimeTX(True)
-    ScriptTX.help()
+    AnimeTX.help()
     ScriptTX.listAnimes()
 
-    #time.sleep(0.5)
-    #ScriptTX.updateAnimeMAL(1, 25)
+    while(1):
+        op = input()
+        lop = op.split()
+        if len(lop) > 0:
+            if (lop[0] == 'exit' or lop[0] == 'quit' or lop[0] == 'q' or lop[0] == 'e'):
+                errlog.close()
+                exit()
+            elif (lop[0] == 'update' or lop[0] == 'u'):
+                ScriptTX.updateAnimeMAL(int(lop[1]), int(lop[2]))
+            elif (lop[0] == 'increase' or lop[0] == 'i'):
+                ScriptTX.updateAnimeMAL(int(lop[1]), inc = True)
+            elif (lop[0] == 'list' or lop[0] == 'l'):
+                ScriptTX.listAnimes()
+            elif (lop[0] == 'help' or lop[0] == 'h'):
+                AnimeTX.help()
+            elif (lop[0] == 'changeuser' or lop[0] == 'cu'):
+                ScriptTX = AnimeTX(False)
+                AnimeTX.help()
+                ScriptTX.listAnimes()
+            else:
+                print("instrucción no encontrada.")
 
-    #while(1):
-    #    pass
-
-    errlog.close()
