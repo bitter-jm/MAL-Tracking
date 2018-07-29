@@ -1,7 +1,4 @@
 
-# Por hacer:
-# - Hay veces que el POST devuelve al url correct (pagina de inicio) pero retorna s.c. 429 -> Mirar si realmente está logeado
-
 ### -------------- LIBRARIES -------------- ###
 
 import json
