@@ -35,15 +35,13 @@ class AnimeTX:
 
         self.status = self.loginMAL()
         while (self.status == -1 or self.status == -3):
-            self.updateCredentials()
             if (self.status == -1):
+                self.updateCredentials()
                 self.session = requests.Session()
             else: 
                 time.sleep(self.delay)
-                self.delay = self.delay+0.2
             self.status = self.loginMAL()
         if self.status == -2:
-            time.sleep(5)
             exit(1)  
 
         self.getAnimesMAL()
