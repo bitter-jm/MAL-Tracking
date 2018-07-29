@@ -11,7 +11,7 @@ import os
 import sys
 from colorama import init, Fore, Back, Style
 
-### --------------- OBJECT ---------------- ###
+### --------------- CLASS ----------------- ###
 
 class AnimeTX:
     user = None
