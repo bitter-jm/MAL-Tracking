@@ -14,7 +14,7 @@ and for each airing anime in your list informs you of the latest episode release
     - $ pip install beautifulsoup4
     - $ pip install lxml
     - $ pip install colorama
-- download repo
+- download/clone repo
 - execute: $ py script.py
 
 <br>
