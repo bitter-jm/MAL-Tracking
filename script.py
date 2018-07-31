@@ -56,7 +56,6 @@ class AnimeTX:
         print(' - increase/i <num> -> Increases by one your current cap of anime<num>')
         print(' - update/u <num> <ep> -> Updates the current episode of anime<num> to <ep>')
         print(' - quit/q -> Ends the process')
-        
 
     def getCredentials(self):
         if (not os.path.exists('credentials')):
@@ -90,7 +89,6 @@ class AnimeTX:
         errlog.write(" - status code: " + str(loginPage.status_code) + '\n')
         if '4' in str(loginPage.status_code):
             errlog.write('Failed to open page. The server is refusing the connection. RETRYING...\n\n')
-            time.sleep(self.delay)
             return -3
         
         errlog.write('Parsing CSRF token...\n')
@@ -98,8 +96,6 @@ class AnimeTX:
         self.csrf_token = list(set(tree.xpath("//meta[@name='csrf_token']/@content")))[0]
         payload['csrf_token'] = self.csrf_token
         errlog.write(' - token :' + payload['csrf_token'] + '\n')
-        del tree
-        del loginPage
         time.sleep(self.delay)
 
         errlog.write('HTTP POST -> MAL loggin...\n')
