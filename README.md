@@ -18,5 +18,3 @@ and for each airing anime in your list informs you of the latest episode release
 - execute: $ py script.py
 
 <br>
-
-**This script scraps data from <a href="https://animeflv.net">animeFLV.net</a>. Use at your own risk. I am not responsible for any use case.**
